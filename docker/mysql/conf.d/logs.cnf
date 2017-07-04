@@ -1,0 +1,13 @@
+[mysqld]
+
+# Disable general logging as this is a performance killer
+general_log = 0
+
+# Ensure error logging is enabled.
+log_error  = /var/log/mysql/error.log
+
+# Log slow queries - anything that takes over one second
+log_output = 'TABLE'
+slow_query_log = 1
+long_query_time = 1
+log_queries_not_using_indexes = 1

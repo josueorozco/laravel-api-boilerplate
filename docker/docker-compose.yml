@@ -1,0 +1,105 @@
+version: '2'
+services:
+
+    ### Workspace Container ##########################################
+    workspace:
+        container_name: api-workspace
+        build: ./workspace
+        image: josueorozco/laravel-api-boilerplate:workspace
+
+    ### SRC Container ##########################################
+    src:
+        container_name: api-src
+        image: josueorozco/laravel-api-boilerplate:src
+        env_file: ../.env
+        build:
+            context: ../
+            dockerfile: docker/src/Dockerfile
+            args:
+                - APP_ENV=local
+                - INSTALL_XDEBUG=false
+                - COMPOSER_INSTALL=false
+                - COMPOSER_OAUTH_TOKEN=1e81a66189dca473a0e054917752d03eb4230b6b
+        depends_on:
+            - workspace
+        volumes:
+            - ../:/var/www/laravel.local
+
+    ### DATA Container ##########################################
+    data:
+        container_name: api-data
+        build: ./data
+        image: josueorozco/laravel-api-boilerplate:data
+        volumes:
+            - /var/lib/mysql
+            - /var/lib/redis
+            - ./logs/nginx/:/var/log/nginx
+            - ./logs/php/:/usr/local/var/log
+            - ./logs/mysql/:/var/log/mysql
+
+    ### MySQL Container #########################################
+    mysql:
+        container_name: api-mysql
+        build: ./mysql
+        image: josueorozco/laravel-api-boilerplate:mysql
+        environment:
+            MYSQL_DATABASE: api
+            MYSQL_USER: RMSDPkS6BMcXaF1NBCsogA
+            MYSQL_PASSWORD: W5Hm+d/QIoP9qUqHX+SG9w==
+            MYSQL_ROOT_PASSWORD: IyPwiyctUp9BvO+WpdGQQw==
+        volumes_from:
+            - data
+        volumes:
+            - ./mysql/scripts:/docker-entrypoint-initdb.d
+            - ./mysql/conf.d:/etc/mysql/conf.d
+            - ./mysql/sshdmp:/sshdmp
+        ports:
+            - "3306:3306"
+        links:
+            - src
+            - php
+        depends_on:
+            - data
+
+    ### PHP Container ###########################################
+    php:
+        container_name: api-php
+        build: ./php
+        image: josueorozco/laravel-api-boilerplate:php
+        working_dir: /var/www/laravel.local
+        volumes_from:
+            - src
+            - data
+        expose:
+            - "9000"
+        depends_on:
+            - src
+            - data
+
+    ### Nginx Server Container ##################################
+    nginx:
+        container_name: api-nginx
+        build: ./nginx
+        image: josueorozco/laravel-api-boilerplate:nginx
+        volumes_from:
+            - src
+            - data
+        ports:
+            - "80:80"
+        links:
+            - php
+        depends_on:
+            - src
+            - data
+
+    ### Redis Container #########################################
+    redis:
+        container_name: api-redis
+        build: ./redis
+        image: josueorozco/laravel-api-boilerplate:redis
+        volumes_from:
+            - data
+        ports:
+            - "6379:6379"
+        depends_on:
+            - data

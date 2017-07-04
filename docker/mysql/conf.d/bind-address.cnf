@@ -1,0 +1,3 @@
+[mysqld]
+# Allow external connections
+bind_address = 0.0.0.0

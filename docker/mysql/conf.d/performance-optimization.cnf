@@ -1,0 +1,23 @@
+[mysqld]
+
+# Default of 100 should be safe. May
+# need to modify this value on a case-by-case
+# basis.
+max_connections = 100
+
+# How much memory to use for caching
+# This should be 90% of available memory
+# innodb_buffer_pool_size = 2GB
+
+# Input/Output per second. This depends
+# on disk type. Examples:
+# Enterprise SSD => 50,000
+# Single Consumer SSD => 10,000
+# Single 7200 RPM Drive => 200
+innodb_io_capacity = 5400
+
+# Disable query caching, especially
+# if using alternative solutions such as
+# Redis, etc.
+query_cache_limit = 0
+query_cache_size = 0
